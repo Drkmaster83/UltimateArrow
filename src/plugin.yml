@@ -4,7 +4,7 @@ version: 0.1
 author: L3X-H4x0r
 description: The next best minigame!
 commands:
-  UltimateArrow:
-    description: Join a Ultimate Arrow match.
+  ultimatearrow:
+    description: Join an Ultimate Arrow match.
     usage: /ua [join|leave]
     aliases: [ua]
