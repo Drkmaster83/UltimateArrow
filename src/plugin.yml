@@ -1,0 +1,10 @@
+name: UltimateArrow
+main: com.nightrosexl.ua.UltimateArrow
+version: 0.1
+author: L3X-H4x0r
+description:
+
+commands:
+    ua:
+        description: Join a Ultimate Arrow match.
+        usage: /ua [join|leave]
