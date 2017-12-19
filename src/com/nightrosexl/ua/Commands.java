@@ -16,7 +16,7 @@ public class Commands implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (!cmd.getName().equalsIgnoreCase("ua")) return false;
+		if (!cmd.getName().equalsIgnoreCase("UltimateArrow")) return false;
 
 		Player p = (Player) sender;
 
@@ -45,8 +45,11 @@ public class Commands implements CommandExecutor {
 
 			// TODO: remove lines 50-52, put them in a cleanup method of some sort.
 			p.getInventory().remove(Material.BOW);
-			p.getPlayer().teleport(ua.getSelectArea());
+			p.teleport(ua.getSelectArea());
 			p.sendMessage(ChatColor.DARK_RED + ua.getPrefix() + playerName + ", you have been removed from the game!");
+		}
+		else {
+			p.sendMessage(ChatColor.RED + ua.getPrefix() + "Invalid argument. Usage: /ua [" + uaArgs[0] + ", " + uaArgs[1] + "]");
 		}
 		return true;
 	}
