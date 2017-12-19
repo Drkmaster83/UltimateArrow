@@ -16,8 +16,10 @@ public class Commands implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (!cmd.getName().equalsIgnoreCase("UltimateArrow")) return false;
-
+		if (!cmd.getName().equalsIgnoreCase("ua")) {
+			return false;
+			sender.sendMessage("testing...");
+		}
 		Player p = (Player) sender;
 
 		String playerName = p.getName();

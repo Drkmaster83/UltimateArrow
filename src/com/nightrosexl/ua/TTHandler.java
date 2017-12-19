@@ -54,9 +54,9 @@ public class TTHandler implements Listener {
             player.setReady(true);
             p.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + p.getName() + ", you are ready!");
             Gameplay gp = ua.getGameplay();
-            gp.distributeEquipment(p); //Give the bow
+            gp.distributeEquipment(p); // Give the bow
             if(gp.getReadyAmount() == ua.getUAGeneralPlayerRoster().size()) {
-                gp.endReadyPeriod(); //When this is called, a randomly selected player will receive the arrow.
+                gp.endReadyPeriod(); // When this is called, a randomly selected player will receive the arrow.
             }
             // TODO: send message to everyone in match of players that are ready...
         }

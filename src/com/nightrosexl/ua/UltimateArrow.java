@@ -25,7 +25,7 @@ public class UltimateArrow extends JavaPlugin {
 		uaTeamSelectArea = new Location(w, 406.5, 64, 634.5); // Teleport location is now in the middle of that block
 		viewing_deck1 = new Location(w, 316, 72, -342);
 		gp = new Gameplay(this);
-		this.getCommand("ua").setExecutor(new Commands(this));
+		this.getCommand("ultimatearrow").setExecutor(new Commands(this));
 		getServer().getPluginManager().registerEvents(new TTHandler(this), this);
 		getServer().getPluginManager().registerEvents(gp, this);
 	}
