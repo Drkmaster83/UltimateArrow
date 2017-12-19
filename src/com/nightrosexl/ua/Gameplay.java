@@ -1,9 +1,16 @@
 package com.nightrosexl.ua;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -130,5 +137,47 @@ public class Gameplay implements Listener {
     
     public void freezePlayer() {
         // freeze player after walking four blocks
+    }
+    
+    @EventHandler
+    public void arrowBehavior(EntityDamageByEntityEvent e) {
+        if (e.getDamager().getType() != EntityType.ARROW) return; // Make sure to import EntityType, not a damaging arrow
+        if (e.getEntity().getType() != EntityType.PLAYER) return; // Not a damaged player
+        Player p = (Player) e.getEntity();
+        if (ua.getPlayer(p) == null) return; // Not in general roster of players, so not in game.
+        Arrow a = (Arrow) e.getDamager();
+        a.setKnockbackStrength(0);
+        e.setDamage(0.0);
+        a.remove();
+        e.setCancelled(true);
+        
+        p.damage(1.0); // if we call this with 0, it doesn't do anything, so we call it with 1, and then heal the player of the damage.
+        p.setHealth(p.getHealth()+1);
+        
+        // get player hit with arrow, give them arrow.
+        setArrowPlayer(ua.getPlayer(p));
+    }
+
+    @EventHandler
+    public void onArrowHitBlock(ProjectileHitEvent e) {
+        if(e.getHitEntity() != null) return; // We only want to handle this event if it strikes a block, not a player or something.
+        Location hit = e.getHitBlock().getLocation();
+        double nearestDistanceSquared = Double.MAX_VALUE;
+        UAPlayer uap = null; //Nearest player
+        for(Entity ent : e.getEntity().getNearbyEntities(5, 5, 5)) {
+            if(!(ent instanceof Player)) continue;
+            double distSquared = hit.distanceSquared(ent.getLocation());
+            if(distSquared < nearestDistanceSquared) { // We've found an entity that's nearer than our previous one
+                nearestDistanceSquared = distSquared;
+                uap = ua.getPlayer((Player)ent);
+            }
+        }
+        if(uap == null || nearestDistanceSquared == Double.MAX_VALUE) {// No player found/nearest distance still far
+            getArrowPlayer().getPlayer().getInventory().addItem(getArrowItem()); // give them another arrow since no player can take possession
+            e.getEntity().remove(); // Remove the old arrow
+            return;
+        }
+        // Player must have been found if we're here
+        setArrowPlayer(uap);
     }
 }
