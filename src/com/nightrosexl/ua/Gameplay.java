@@ -161,9 +161,12 @@ public class Gameplay implements Listener {
     @EventHandler
     public void onArrowHitBlock(ProjectileHitEvent e) {
         if(e.getHitEntity() != null) return; // We only want to handle this event if it strikes a block, not a player or something.
+        if (e.getEntity() instanceof Arrow) {
+        	if (!(((Arrow) e.getEntity()).getShooter() instanceof Player)) return;
+        }
         Location hit = e.getHitBlock().getLocation();
         double nearestDistanceSquared = Double.MAX_VALUE;
-        UAPlayer uap = null; //Nearest player
+        UAPlayer uap = null; // Nearest player
         for(Entity ent : e.getEntity().getNearbyEntities(5, 5, 5)) {
             if(!(ent instanceof Player)) continue;
             double distSquared = hit.distanceSquared(ent.getLocation());
@@ -172,7 +175,8 @@ public class Gameplay implements Listener {
                 uap = ua.getPlayer((Player)ent);
             }
         }
-        if(uap == null || nearestDistanceSquared == Double.MAX_VALUE) {// No player found/nearest distance still far
+        
+        if(uap == null || nearestDistanceSquared == Double.MAX_VALUE) { // No player found/nearest distance still far
             getArrowPlayer().getPlayer().getInventory().addItem(getArrowItem()); // give them another arrow since no player can take possession
             e.getEntity().remove(); // Remove the old arrow
             return;

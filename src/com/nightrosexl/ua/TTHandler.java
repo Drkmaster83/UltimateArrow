@@ -1,12 +1,15 @@
 package com.nightrosexl.ua;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.libs.jline.internal.Log;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class TTHandler implements Listener {    
     private UltimateArrow ua;
@@ -27,13 +30,15 @@ public class TTHandler implements Listener {
             if (e.getClickedBlock().getLocation().equals(ua.getRedPlate())) {
                 player.setTeam("Red"); //Set their team!
                 p.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + p.getName() + ", you have joined the Red Team!");
-                p.teleport(ua.getRedSide()); //bad
+                p.teleport(ua.getRedSide());
+                Log.info(ua.getRedTeamPlayers() + ", " + ua.getBlueTeamPlayers() + ", " + ua.getUAGeneralPlayerRoster()); // TEST
             }
             
             if (e.getClickedBlock().getLocation().equals(ua.getBluePlate())) {
                 player.setTeam("Blue"); //Remember, we could also teleport the player to a location if we had a UAPlayer#joinGame() method
                 p.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + p.getName() + ", you have joined the Blue Team!");
-                p.teleport(ua.getBlueSide()); //bad
+                p.teleport(ua.getBlueSide());
+                Log.info(ua.getRedTeamPlayers() + ", " + ua.getBlueTeamPlayers() + ", " + ua.getUAGeneralPlayerRoster()); // TEST            
             }
         // not in list and trigger plate? send message.
         } else if (ua.getPlayer(p) == null && (e.getClickedBlock().getLocation().equals(ua.getRedPlate()) || e.getClickedBlock().getLocation().equals(ua.getBluePlate()))) {
@@ -42,13 +47,27 @@ public class TTHandler implements Listener {
         }
     }
     
+    // if player leaves server, remove from teams (fix this memory leak)
+    @EventHandler
+    public void removeUponDisconnection(PlayerQuitEvent e) {
+    	Player p = e.getPlayer();
+    	UAPlayer player = ua.getPlayer(p);
+    	
+    	if (!p.isOnline()) { // if player is offline?
+    		ua.removeFromUAGeneralRoster(p);
+    		if (ua.getPlayer(p).getTeam().equals("Red")) ua.getRedTeamPlayers().remove(player);
+    		if (ua.getPlayer(p).getTeam().equals("Blue")) ua.getBlueTeamPlayers().remove(player);
+    	Log.info(ua.getRedTeamPlayers() + ", " + ua.getBlueTeamPlayers() + ", " + ua.getUAGeneralPlayerRoster()); // TEST
+    	}
+    }
+    
     // ready up method
     @EventHandler
     public void readyUp(PlayerInteractEvent e) {
         Player p = e.getPlayer();
         
         if(e.getClickedBlock() == null || e.getClickedBlock().getType() == Material.AIR) return;
-        if(ua.getPlayer(p) == null) return; //Player's not in-game/in-arena
+        if(ua.getPlayer(p) == null) return; // Player's not in-game/in-arena
         UAPlayer player = ua.getPlayer(p);
         if(e.getClickedBlock().getType() == Material.STONE_BUTTON && !player.isReady()) {
             player.setReady(true);
