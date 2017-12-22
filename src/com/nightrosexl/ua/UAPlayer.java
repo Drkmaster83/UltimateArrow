@@ -2,8 +2,8 @@ package com.nightrosexl.ua;
 
 import org.bukkit.entity.Player;
 
+/** This class stores our additional data while being hooked up with a Bukkit Player object*/
 public class UAPlayer {
-
 	private Player player;
 	private boolean isReady;
 	private String team;
@@ -37,4 +37,9 @@ public class UAPlayer {
 		this.team = newTeam;
 	}
 	
+	/** Override default object toString() method (which normally returns the memory address for the object) */
+	@Override
+	public String toString() {
+		return "{UAPlayer{Name: " + player.getName() + ", UUID: " + player.getUniqueId().toString() + ", isReady: " + isReady + ", Team: " + team +"}}";
+	}
 }

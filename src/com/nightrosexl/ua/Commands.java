@@ -14,42 +14,39 @@ public class Commands implements CommandExecutor {
 		this.ua = ua;
 	}
 
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+	public boolean onCommand(CommandSender console, Command cmd, String label, String[] args) {
 		if (!cmd.getName().equalsIgnoreCase("UltimateArrow")) return false;
+		if (!(console instanceof Player)) {
+			console.sendMessage("You can't play this game kiddo, nice try though!");
+			return true;
+		}
+		Player pSender = (Player) console;
 
-		Player p = (Player) sender;
-
-		String playerName = p.getName();
+		String playerName = pSender.getName();
 		String[] uaArgs = {"join", "leave"};
 
 		if (args.length == 0) {
-			p.sendMessage(ChatColor.RED + ua.getPrefix() + "Additional arguments are required.");
-			p.sendMessage(ChatColor.RED + ua.getPrefix() + "Usage /ua [" + uaArgs[0] + ", " + uaArgs[1] + "]");
+			pSender.sendMessage(ChatColor.RED + ua.getPrefix() + "Additional arguments are required.");
+			pSender.sendMessage(ChatColor.RED + ua.getPrefix() + "Usage /" + label + " [" + uaArgs[0] + ", " + uaArgs[1] + "]");
 			return true;
 		}
 
 		if (args[0].equalsIgnoreCase(uaArgs[0])) {
-			ua.addToUAGeneralRoster(p, "");
-			p.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you will be teleported to the team selection area soon!");
-
+			ua.addToUAGeneralRoster(pSender, "");
+			pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you have been teleported to the team selection area!");
+			pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + "The game will begin momentarily.");
+			pSender.teleport(ua.getSelectArea());
 			// check team size, start game, if conditions are met.
-			// loop through list and teleport everyone in it.
-			if (ua.getUAGeneralPlayerRoster().size() >= 2/*ua.getUAGeneralPlayerRoster().size() >= 10 && ua.getUAGeneralPlayerRoster().size() <= 20*/) {
-				for (UAPlayer uap : ua.getUAGeneralPlayerRoster()) {
-					uap.getPlayer().teleport(ua.getSelectArea());
-				}
-			}
 		} else if (args[0].equalsIgnoreCase(uaArgs[1])) {
-			ua.removeFromUAGeneralRoster(p);
-
 			// TODO: remove lines 50-52, put them in a cleanup method of some sort.
-			p.getInventory().remove(Material.BOW);
-			p.teleport(ua.getSelectArea());
-			p.sendMessage(ChatColor.DARK_RED + ua.getPrefix() + playerName + ", you have been removed from the game!");
+			pSender.getInventory().remove(Material.BOW);
+			pSender.teleport(ua.getSelectArea());
+			ua.getGameplay().revokeEquipment(pSender);
+			ua.removeFromUAGeneralRoster(pSender);
+			pSender.sendMessage(ChatColor.DARK_RED + ua.getPrefix() + playerName + ", you have been removed from the game!");
 		}
 		else {
-			p.sendMessage(ChatColor.RED + ua.getPrefix() + "Invalid argument. Usage: /ua [" + uaArgs[0] + ", " + uaArgs[1] + "]");
+			pSender.sendMessage(ChatColor.RED + ua.getPrefix() + "Invalid argument. Usage: /" + label + " [" + uaArgs[0] + ", " + uaArgs[1] + "]");
 		}
 		return true;
 	}

@@ -24,10 +24,9 @@ public class UltimateArrow extends JavaPlugin {
 		blueTeamSide = new Location(w, 317.5, 65, -442.5, 0f, 0f);
 		uaTeamSelectArea = new Location(w, 406.5, 64, 634.5); // Teleport location is now in the middle of that block
 		viewing_deck1 = new Location(w, 316, 72, -342);
-		gp = new Gameplay(this);
 		this.getCommand("ultimatearrow").setExecutor(new Commands(this));
 		getServer().getPluginManager().registerEvents(new TTHandler(this), this);
-		getServer().getPluginManager().registerEvents(gp, this);
+		getServer().getPluginManager().registerEvents(gp = new Gameplay(this), this);
 	}
 
 	@Override
@@ -68,20 +67,24 @@ public class UltimateArrow extends JavaPlugin {
 	}
 
 	// add
-	public void addToUAGeneralRoster(Player player, String team) {
-		if (getPlayer(player) != null) return; //They're already in the list, don't want a duplicate!
+	/** @return true if the player wasn't already in-game, false if they were in-game */
+	public boolean addToUAGeneralRoster(Player player, String team) {
+		if (getPlayer(player) != null) return false; //They're already in the list, don't want a duplicate!
 		ultimateArrowGeneralPlayerRoster.add(new UAPlayer(player, team));
+		return true;
 	}
 
 	// remove
-	public void removeFromUAGeneralRoster(Player player) {
-		if (getPlayer(player) == null) return; //Don't want to remove player if they're not in the game!
+	/** @return true if the player was in-game and got removed, false if they weren't in-game */
+	public boolean removeFromUAGeneralRoster(Player player) {
+		if (getPlayer(player) == null) return false; //Don't want to remove player if they're not in the game!
 		ultimateArrowGeneralPlayerRoster.remove(getPlayer(player));
+		return true;
 	}
 
 	public UAPlayer getPlayer(Player player) {
-		for (UAPlayer uap : getUAGeneralPlayerRoster()) {
-			if (uap.getPlayer().getUniqueId().equals(player.getUniqueId())) return uap;
+		for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
+			if (gamePlayer.getPlayer().getUniqueId().equals(player.getUniqueId())) return gamePlayer;
 		}
 		return null;
 	}
@@ -92,16 +95,16 @@ public class UltimateArrow extends JavaPlugin {
 
 	public List<UAPlayer> getRedTeamPlayers() {
 		List<UAPlayer> redTeam = new ArrayList<UAPlayer>();
-		for (UAPlayer uap : getUAGeneralPlayerRoster()) {
-			if (uap.getTeam().equalsIgnoreCase("Red")) redTeam.add(uap);
+		for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
+			if (gamePlayer.getTeam().equalsIgnoreCase("Red")) redTeam.add(gamePlayer);
 		}
 		return redTeam;
 	}
 
 	public List<UAPlayer> getBlueTeamPlayers() {
 		List<UAPlayer> blueTeam = new ArrayList<UAPlayer>();
-		for (UAPlayer uap : getUAGeneralPlayerRoster()) {
-			if (uap.getTeam().equalsIgnoreCase("Blue")) blueTeam.add(uap);
+		for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
+			if (gamePlayer.getTeam().equalsIgnoreCase("Blue")) blueTeam.add(gamePlayer);
 		}
 		return blueTeam;
 	}
