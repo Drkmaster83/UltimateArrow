@@ -14,7 +14,7 @@ public class UltimateArrow extends JavaPlugin {
 	private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
 	private World w;
 	private Gameplay gp;
-
+	
 	@Override
 	public void onEnable() {
 		w = getServer().getWorld("world"); // Centralize the world object for all the locations
@@ -69,7 +69,7 @@ public class UltimateArrow extends JavaPlugin {
 	// add
 	/** @return true if the player wasn't already in-game, false if they were in-game */
 	public boolean addToUAGeneralRoster(Player player, String team) {
-		if (getPlayer(player) != null) return false; //They're already in the list, don't want a duplicate!
+		if (getPlayer(player) != null) return false; // They're already in the list, don't want a duplicate!
 		ultimateArrowGeneralPlayerRoster.add(new UAPlayer(player, team));
 		return true;
 	}
@@ -77,7 +77,7 @@ public class UltimateArrow extends JavaPlugin {
 	// remove
 	/** @return true if the player was in-game and got removed, false if they weren't in-game */
 	public boolean removeFromUAGeneralRoster(Player player) {
-		if (getPlayer(player) == null) return false; //Don't want to remove player if they're not in the game!
+		if (getPlayer(player) == null) return false; // Don't want to remove player if they're not in the game!
 		ultimateArrowGeneralPlayerRoster.remove(getPlayer(player));
 		return true;
 	}
@@ -129,8 +129,6 @@ public class UltimateArrow extends JavaPlugin {
 
 /*
  * TODO:
- * - Put join/leave args into one class. -DONE-
- * - Tidy up Commands class.
  * - Test out teleport stuff. -DONE-
  * - Add in team-balancing later on. -Work in Progress-
  * -

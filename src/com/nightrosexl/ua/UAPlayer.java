@@ -40,6 +40,6 @@ public class UAPlayer {
 	/** Override default object toString() method (which normally returns the memory address for the object) */
 	@Override
 	public String toString() {
-		return "{UAPlayer{Name: " + player.getName() + ", UUID: " + player.getUniqueId().toString() + ", isReady: " + isReady + ", Team: " + team +"}}";
+		return "{UAPlayer {Name: " + player.getName() + ", UUID: " + player.getUniqueId().toString() + ", isReady: " + isReady + ", Team: " + team + "} }";
 	}
 }

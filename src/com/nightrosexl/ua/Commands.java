@@ -7,6 +7,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.nightrosexl.ua.UltimateArrow;
+
 public class Commands implements CommandExecutor {
 	private UltimateArrow ua;
 
@@ -36,9 +38,7 @@ public class Commands implements CommandExecutor {
 			pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you have been teleported to the team selection area!");
 			pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + "The game will begin momentarily.");
 			pSender.teleport(ua.getSelectArea());
-			// check team size, start game, if conditions are met.
 		} else if (args[0].equalsIgnoreCase(uaArgs[1])) {
-			// TODO: remove lines 50-52, put them in a cleanup method of some sort.
 			pSender.getInventory().remove(Material.BOW);
 			pSender.teleport(ua.getSelectArea());
 			ua.getGameplay().revokeEquipment(pSender);

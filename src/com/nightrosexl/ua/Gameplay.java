@@ -105,7 +105,7 @@ public class Gameplay implements Listener {
         int listSize = (int) (Math.random() * ua.getUAGeneralPlayerRoster().size());
         UAPlayer randomlySelectedGamePlayer = ua.getUAGeneralPlayerRoster().get(listSize);
 
-        // distribute arrow
+        // distribute arrow to random player
         setArrowPlayer(randomlySelectedGamePlayer);
     }
     
@@ -113,6 +113,9 @@ public class Gameplay implements Listener {
         gameStarted = false;
         readyPeriod = false;
         timerStarted = false;
+        
+        // remove arrow
+        getArrowPlayer().getPlayer().getInventory().removeItem(arrow);
         // Do whatever else clean up required, remove items, teleport players to lobby, etc
     }
     
@@ -132,7 +135,7 @@ public class Gameplay implements Listener {
     }
     public int getReadyAmount() {
         int readyAmt = 0;
-        for(UAPlayer gamePlayer : ua.getUAGeneralPlayerRoster()) { //Run through all in-game players
+        for(UAPlayer gamePlayer : ua.getUAGeneralPlayerRoster()) { // Run through all in-game players
             if (gamePlayer.isReady()) readyAmt++;
         }
         return readyAmt;
@@ -167,23 +170,23 @@ public class Gameplay implements Listener {
 
     @EventHandler
     public void onArrowHitBlock(ProjectileHitEvent e) {
-        if(e.getHitEntity() != null) return; // We only want to handle this event if it strikes a block, not a player or something.
+        if (e.getHitEntity() != null) return; // We only want to handle this event if it strikes a block, not a player or something.
         if (!(e.getEntity() instanceof Arrow) || !((Arrow)e.getEntity().getShooter() instanceof Player)) return;
         Player shooter = (Player) (Arrow)e.getEntity().getShooter();
         Location hit = e.getHitBlock().getLocation();
         double nearestDistanceSquared = Double.MAX_VALUE;
         UAPlayer nearestPlayerToArrow = null;
         for(Entity ent : e.getEntity().getNearbyEntities(arrowHitRadius, arrowHitRadius, arrowHitRadius)) {
-            if(!(ent instanceof Player)) continue;
-            if(ent.getUniqueId().equals((shooter.getUniqueId()))) continue; //Don't want to do this, just take care of it below
+            if (!(ent instanceof Player)) continue;
+            if (ent.getUniqueId().equals((shooter.getUniqueId()))) continue; // Don't want to do this, just take care of it below
             double distSquared = hit.distanceSquared(ent.getLocation());
-            if(distSquared < nearestDistanceSquared) { // We've found an entity that's nearer than our previous one
+            if (distSquared < nearestDistanceSquared) { // We've found an entity that's nearer than our previous one
                 nearestDistanceSquared = distSquared;
                 nearestPlayerToArrow = ua.getPlayer((Player)ent);
             }
         }
         
-        if(nearestPlayerToArrow == null || nearestDistanceSquared == Double.MAX_VALUE) { // No player found/nearest distance still farthest possible
+        if (nearestPlayerToArrow == null || nearestDistanceSquared == Double.MAX_VALUE) { // No player found/nearest distance still farthest possible
             getArrowPlayer().getPlayer().getInventory().addItem(getArrowItem()); // give them another arrow since no player can take possession
             e.getEntity().remove(); // Remove the old arrow
             return;
