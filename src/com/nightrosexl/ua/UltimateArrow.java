@@ -14,6 +14,7 @@ public class UltimateArrow extends JavaPlugin {
 	private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
 	private World w;
 	private Gameplay gp;
+	private TTHandler tt;
 	
 	@Override
 	public void onEnable() {
@@ -25,13 +26,13 @@ public class UltimateArrow extends JavaPlugin {
 		uaTeamSelectArea = new Location(w, 406.5, 64, 634.5); // Teleport location is now in the middle of that block
 		viewing_deck1 = new Location(w, 316, 72, -342);
 		this.getCommand("ultimatearrow").setExecutor(new Commands(this));
-		getServer().getPluginManager().registerEvents(new TTHandler(this), this);
+		getServer().getPluginManager().registerEvents(tt = new TTHandler(this), this);
 		getServer().getPluginManager().registerEvents(gp = new Gameplay(this), this);
 	}
 
 	@Override
 	public void onDisable() {
-
+		tt.cleanup();
 	}
 
 	public Location getRedSide() {
