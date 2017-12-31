@@ -11,13 +11,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 public class Gameplay implements Listener {
-	public enum GameState {WAITING_READY, IN_GAME, ENDED};
-	
+    public enum GameState {WAITING_READY, IN_GAME, ENDED};
+    
     private UltimateArrow ua;
     private boolean gameStarted, timerStarted, readyPeriod;
     private int timeUntilStart, minPlayersToBegin, arrowHitRadius;
@@ -33,6 +34,7 @@ public class Gameplay implements Listener {
         this.timerStarted = false;
         this.gameStarted = false;
         this.timeUntilStart = 60;
+        this.arrowHitRadius = 5;
         this.minPlayersToBegin = 2; /*official version< 5*/
         state = GameState.WAITING_READY;
     }
@@ -74,9 +76,11 @@ public class Gameplay implements Listener {
                 if (!timerStarted) timerStarted = true;
                 if (--timerVal > 0 && getReadyAmount() < ua.getUAGeneralPlayerRoster().size()) return; // This will continue going down if the timer is 0 or less, or if the amount of players ready are the same as who's in-game (AKA everyone's ready)
                 if (timerVal <= 0) { // Time's up! We're not waiting on readying players anymore, we're kicking them.
-                    for (UAPlayer gamePlayer : ua.getUAGeneralPlayerRoster()) { // Loop through all players in game
+                    for (int i = 0; i < ua.getUAGeneralPlayerRoster().size(); i++) { // Loop through all players in game
+                        UAPlayer gamePlayer = ua.getUAGeneralPlayerRoster().get(i);
                         if (!gamePlayer.isReady()) { // This player isn't ready, screw em
-                            ua.removeFromUAGeneralRoster(gamePlayer.getPlayer()); // Possible concurrent modification problem, calling it
+                            ua.removeFromUAGeneralRoster(gamePlayer.getPlayer());
+                            i--; // Since we removed them from the list, all the other entries in the list have shifted left, so we need to shift back one to counteract the i++ that happens after this cycle of the loop completes
                             revokeEquipment(gamePlayer.getPlayer());
                             gamePlayer.getPlayer().teleport(ua.getViewingArea());
                             gamePlayer.getPlayer().sendMessage(ChatColor.DARK_RED + ua.getPrefix() + gamePlayer.getPlayer().getName() + ", you have been removed from the match as you are not ready.");
@@ -142,7 +146,7 @@ public class Gameplay implements Listener {
     }
     
     public GameState getState() {
-    	return state;
+        return state;
     }
     
     public void freezePlayer() {
@@ -166,13 +170,14 @@ public class Gameplay implements Listener {
         
         // get player hit with arrow, give them arrow.
         setArrowPlayer(ua.getPlayer(damaged));
+        
     }
 
     @EventHandler
     public void onArrowHitBlock(ProjectileHitEvent e) {
         if (e.getHitEntity() != null) return; // We only want to handle this event if it strikes a block, not a player or something.
-        if (!(e.getEntity() instanceof Arrow) || !((Arrow)e.getEntity().getShooter() instanceof Player)) return;
-        Player shooter = (Player) (Arrow)e.getEntity().getShooter();
+        if (!(e.getEntity() instanceof Arrow) || !(((Arrow)e.getEntity()).getShooter() instanceof Player)) return;
+        Player shooter = (Player) ((Arrow)e.getEntity()).getShooter();
         Location hit = e.getHitBlock().getLocation();
         double nearestDistanceSquared = Double.MAX_VALUE;
         UAPlayer nearestPlayerToArrow = null;
@@ -181,8 +186,9 @@ public class Gameplay implements Listener {
             if (ent.getUniqueId().equals((shooter.getUniqueId()))) continue; // Don't want to do this, just take care of it below
             double distSquared = hit.distanceSquared(ent.getLocation());
             if (distSquared < nearestDistanceSquared) { // We've found an entity that's nearer than our previous one
+                Player p = (Player) ent;
                 nearestDistanceSquared = distSquared;
-                nearestPlayerToArrow = ua.getPlayer((Player)ent);
+                nearestPlayerToArrow = ua.getPlayer(p);
             }
         }
         
@@ -193,5 +199,17 @@ public class Gameplay implements Listener {
         }
         // Player must have been found if we're here
         setArrowPlayer(nearestPlayerToArrow);
+        e.getEntity().remove();
+    }
+    
+    @EventHandler
+    public void onBuggedArrow(PlayerInteractEvent event) {
+        Player clicker = event.getPlayer();
+        if(event.getItem() == null) return; // Nothing in hand
+        if(ua.getPlayer(clicker) == null) return; // Not in-game
+        if(event.getItem().getType() != Material.BOW) return; // Item clicked was not a bow
+        if(!clicker.getInventory().contains(arrow)) return; // They don't have an arrow in inv
+        if(clicker.getUniqueId().equals(arrowPlayer.getPlayer().getUniqueId())) return; // Shooting player isn't the arrow player
+        clicker.getInventory().remove(arrow); // Remove arrow if they're in-game, have a bow in hand, and have an arrow
     }
 }

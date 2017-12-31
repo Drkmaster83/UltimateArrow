@@ -9,107 +9,108 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class UltimateArrow extends JavaPlugin {
-	private final String uaPrefix = "[Ultimate Arrow] ";
-	private List<UAPlayer> ultimateArrowGeneralPlayerRoster = new ArrayList<UAPlayer>();
-	private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
-	private World w;
-	private Gameplay gp;
-	private TTHandler tt;
-	
-	@Override
-	public void onEnable() {
-		w = getServer().getWorld("world"); // Centralize the world object for all the locations
-		redTeamPlateLoc = new Location(w, 408, 64, 636);
-		redTeamSide = new Location(w, 317.5, 64, -350.5, 180f, 0f);
-		blueTeamPlateLoc = new Location(w, 404, 64, 632);
-		blueTeamSide = new Location(w, 317.5, 65, -442.5, 0f, 0f);
-		uaTeamSelectArea = new Location(w, 406.5, 64, 634.5); // Teleport location is now in the middle of that block
-		viewing_deck1 = new Location(w, 316, 72, -342);
-		this.getCommand("ultimatearrow").setExecutor(new Commands(this));
-		getServer().getPluginManager().registerEvents(tt = new TTHandler(this), this);
-		getServer().getPluginManager().registerEvents(gp = new Gameplay(this), this);
-	}
+	  private final String uaPrefix = "[Ultimate Arrow] ";
+	  private List<UAPlayer> ultimateArrowGeneralPlayerRoster = new ArrayList<UAPlayer>();
+	  private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
+	  private World w;
+	  private Gameplay gp;
+	  private TTHandler tt;
+	  
+	  @Override
+	  public void onEnable() {
+	    w = getServer().getWorld("world"); // Centralize the world object for all the locations
+	    redTeamPlateLoc = new Location(w, 408, 64, 636);
+	    redTeamSide = new Location(w, 317.5, 64, -350.5, 180f, 0f);
+	    blueTeamPlateLoc = new Location(w, 404, 64, 632);
+	    blueTeamSide = new Location(w, 317.5, 65, -442.5, 0f, 0f);
+	    uaTeamSelectArea = new Location(w, 406.5, 64, 634.5); // Teleport location is now in the middle of that block
+	    viewing_deck1 = new Location(w, 316, 72, -342);
+	    this.getCommand("ultimatearrow").setExecutor(new Commands(this));
+	    getServer().getPluginManager().registerEvents(tt = new TTHandler(this), this);
+	    getServer().getPluginManager().registerEvents(gp = new Gameplay(this), this);
+	  }
 
-	@Override
-	public void onDisable() {
-		tt.cleanup();
-	}
+	  @Override
+	  public void onDisable() {
+	    tt.cleanup();
+	  }
 
-	public Location getRedSide() {
-		return redTeamSide;
-	}
+	  public Location getRedSide() {
+	    return redTeamSide;
+	  }
 
-	public Location getBlueSide() {
-		return blueTeamSide;
-	}
+	  public Location getBlueSide() {
+	    return blueTeamSide;
+	  }
 
-	public Location getRedPlate() {
-		return redTeamPlateLoc;
-	}
+	  public Location getRedPlate() {
+	    return redTeamPlateLoc;
+	  }
 
-	public Location getBluePlate() {
-		return blueTeamPlateLoc;
-	}
+	  public Location getBluePlate() {
+	    return blueTeamPlateLoc;
+	  }
 
-	public Location getViewingArea() {
-		return viewing_deck1;
-	}
+	  public Location getViewingArea() {
+	    return viewing_deck1;
+	  }
 
-	public Location getSelectArea() {
-		return uaTeamSelectArea;
-	}
+	  public Location getSelectArea() {
+	    return uaTeamSelectArea;
+	  }
 
-	public String getPrefix() {
-		return uaPrefix;
-	}
+	  public String getPrefix() {
+	    return uaPrefix;
+	  }
 
-	public Gameplay getGameplay() {
-		return gp;
-	}
+	  public Gameplay getGameplay() {
+	    return gp;
+	  }
 
-	// add
-	/** @return true if the player wasn't already in-game, false if they were in-game */
-	public boolean addToUAGeneralRoster(Player player, String team) {
-		if (getPlayer(player) != null) return false; // They're already in the list, don't want a duplicate!
-		ultimateArrowGeneralPlayerRoster.add(new UAPlayer(player, team));
-		return true;
-	}
+	  // add
+	  /** @return true if the player wasn't already in-game, false if they were in-game */
+	  public boolean addToUAGeneralRoster(Player player, String team) {
+	    if (getPlayer(player) != null) return false; // They're already in the list, don't want a duplicate!
+	    ultimateArrowGeneralPlayerRoster.add(new UAPlayer(player, team));
+	    return true;
+	  }
 
-	// remove
-	/** @return true if the player was in-game and got removed, false if they weren't in-game */
-	public boolean removeFromUAGeneralRoster(Player player) {
-		if (getPlayer(player) == null) return false; // Don't want to remove player if they're not in the game!
-		ultimateArrowGeneralPlayerRoster.remove(getPlayer(player));
-		return true;
-	}
+	  // remove
+	  /** @return true if the player was in-game and got removed, false if they weren't in-game */
+	  public boolean removeFromUAGeneralRoster(Player player) {
+	    if (getPlayer(player) == null) return false; // Don't want to remove player if they're not in the game!
+	    ultimateArrowGeneralPlayerRoster.remove(getPlayer(player));
+	    player.setScoreboard(player.getServer().getScoreboardManager().getNewScoreboard());  // 'remove' player's scoreboard.
+	    return true;
+	  }
 
-	public UAPlayer getPlayer(Player player) {
-		for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
-			if (gamePlayer.getPlayer().getUniqueId().equals(player.getUniqueId())) return gamePlayer;
-		}
-		return null;
-	}
+	  public UAPlayer getPlayer(Player player) {
+	    for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
+	      if (gamePlayer.getPlayer().getUniqueId().equals(player.getUniqueId())) return gamePlayer;
+	    }
+	    return null;
+	  }
 
-	public List<UAPlayer> getUAGeneralPlayerRoster() {
-		return ultimateArrowGeneralPlayerRoster;
-	}
+	  public List<UAPlayer> getUAGeneralPlayerRoster() {
+	    return ultimateArrowGeneralPlayerRoster;
+	  }
 
-	public List<UAPlayer> getRedTeamPlayers() {
-		List<UAPlayer> redTeam = new ArrayList<UAPlayer>();
-		for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
-			if (gamePlayer.getTeam().equalsIgnoreCase("Red")) redTeam.add(gamePlayer);
-		}
-		return redTeam;
-	}
+	  public List<UAPlayer> getRedTeamPlayers() {
+	    List<UAPlayer> redTeam = new ArrayList<UAPlayer>();
+	    for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
+	      if (gamePlayer.getTeam().equalsIgnoreCase("Red")) redTeam.add(gamePlayer);
+	    }
+	    return redTeam;
+	  }
 
-	public List<UAPlayer> getBlueTeamPlayers() {
-		List<UAPlayer> blueTeam = new ArrayList<UAPlayer>();
-		for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
-			if (gamePlayer.getTeam().equalsIgnoreCase("Blue")) blueTeam.add(gamePlayer);
-		}
-		return blueTeam;
+	  public List<UAPlayer> getBlueTeamPlayers() {
+	    List<UAPlayer> blueTeam = new ArrayList<UAPlayer>();
+	    for (UAPlayer gamePlayer : getUAGeneralPlayerRoster()) {
+	      if (gamePlayer.getTeam().equalsIgnoreCase("Blue")) blueTeam.add(gamePlayer);
+	    }
+	    return blueTeam;
+	  }
 	}
-}
 
 /*
  * Ultimate Arrow a mini-game conceived by NightRoseXL.

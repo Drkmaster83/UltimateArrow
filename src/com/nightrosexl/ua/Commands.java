@@ -35,9 +35,12 @@ public class Commands implements CommandExecutor {
 
 		if (args[0].equalsIgnoreCase(uaArgs[0])) {
 			ua.addToUAGeneralRoster(pSender, "");
-			pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you have been teleported to the team selection area!");
-			pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + "The game will begin momentarily.");
-			pSender.teleport(ua.getSelectArea());
+			pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you will be teleported momentarily.");
+			
+			if (ua.getUAGeneralPlayerRoster().size() >= 2 && ua.getUAGeneralPlayerRoster().size() <= 10) {
+				pSender.teleport(ua.getSelectArea());
+				pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you have been teleported to the team selection area!");
+			}
 		} else if (args[0].equalsIgnoreCase(uaArgs[1])) {
 			pSender.getInventory().remove(Material.BOW);
 			pSender.teleport(ua.getSelectArea());

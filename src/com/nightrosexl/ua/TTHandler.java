@@ -1,12 +1,16 @@
 package com.nightrosexl.ua;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -19,32 +23,33 @@ import org.bukkit.scoreboard.Team;
 public class TTHandler implements Listener {
     private UltimateArrow ua;
 
-    int minutes; // I strongly recommend to just store seconds, and divide it out into minutes and seconds.
     int seconds;
-    int score;
+    int score = 0;
     int arrows;
     
     Scoreboard sboard; // This is the universal scoreboard, we don't want to let this go.
+    Objective obj;
     Score scoreDisplay;
     Team kdratio, time; // If you have a K/D ratio, that has to be a player-specific scoreboard.
+    
+    Location loc;
     
     BukkitTask scoreboardUpdate;
 
     public TTHandler(UltimateArrow ua) {
-    	this.ua = ua;
-    	
-    	sboard = ua.getServer().getScoreboardManager().getNewScoreboard();
-    	Objective obj = sboard.registerNewObjective("test", "dummy");
-    	obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-		obj.setDisplayName(ChatColor.YELLOW + "Ultimate Arrow");
-		kdratio = sboard.registerNewTeam("kdratio");
-		time = sboard.registerNewTeam("time");
-		time.setDisplayName("Test");
-		scoreboardUpdate = new BukkitRunnable() {
-			public void run() {
-				updateScoreboard();
-			}
-		}.runTaskTimer(ua, 0L, 10L);
+        this.ua = ua;
+        
+        sboard = ua.getServer().getScoreboardManager().getNewScoreboard();
+        obj = sboard.registerNewObjective("test", "dummy");
+        obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+        obj.setDisplayName(ChatColor.YELLOW + "Ultimate Arrow");
+        time = sboard.registerNewTeam("time");
+        time.setDisplayName("Test");
+        scoreboardUpdate = new BukkitRunnable() {
+            public void run() {
+                updateScoreboard();
+            }
+        }.runTaskTimer(ua, 0L, 10L);
     }
 
     // team handling stuff...
@@ -77,9 +82,9 @@ public class TTHandler implements Listener {
     // if player leaves server, remove information
     @EventHandler
     public void removeUponDisconnection(PlayerQuitEvent e) {
-    	Player leavingPlayer = e.getPlayer();
+        Player leavingPlayer = e.getPlayer();
 
-    	ua.removeFromUAGeneralRoster(leavingPlayer);
+        ua.removeFromUAGeneralRoster(leavingPlayer);
     }
     
     // ready up method
@@ -104,15 +109,41 @@ public class TTHandler implements Listener {
     
     /** Updates scoreboard data for all gameplayers */
     public void updateScoreboard() {
-    	String time = minutes + ":" + seconds;
-    	this.time.setDisplayName(time);
-		for(UAPlayer gamePlayer : ua.getUAGeneralPlayerRoster()) {
-			gamePlayer.getPlayer().setScoreboard(sboard);
-		}
-	}
+        String time = (seconds / 60) + ":" + (seconds % 60);
+        this.time.addEntry("Score");
+        this.obj.getScore("Score").setScore(score);
+        this.time.setDisplayName(time);
+        for(UAPlayer gamePlayer : ua.getUAGeneralPlayerRoster()) {
+            gamePlayer.getPlayer().setScoreboard(sboard);
+        }
+    }
+    
+    @EventHandler
+    public void playerMovementDetection(PlayerMoveEvent e) {
+    	Player player = e.getPlayer();
+    	Block b = player.getLocation().getBlock().getRelative(BlockFace.DOWN, 2);
+    	
+    	if (b.getType() == Material.REDSTONE_BLOCK && ua.getBlueTeamPlayers().contains(player)) {
+    		player.sendMessage("TEST: In the red zone, blue team is given one point!");
+    		// update scoreboard, increment score.
+    	}
+    	
+    	if (b.getType() == Material.LAPIS_BLOCK && ua.getRedTeamPlayers().contains(player)) {
+    		player.sendMessage("TEST: In the blue zone, red team is given one point!");
+    		// update scoreboard, increment score.
+    	}
+    }
+    
+    /*
+     * Players need to pass the arrow to the opposite side of the arena to be rewarded with a point.
+     * Get player and their team and check if they are on their team's side of the arena with arrow.
+     * If not, then do not increase their team's score.
+     * If player is on wooden plank, with blue glass underneath and is on the red team, give them point.
+     * If player is on wooden plank, with red glass underneath and is on the blue team, give them point.
+     */
     
     public void cleanup() {
-    	scoreboardUpdate.cancel();
+        scoreboardUpdate.cancel();
     }
 }
 
