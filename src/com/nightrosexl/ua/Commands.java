@@ -37,8 +37,14 @@ public class Commands implements CommandExecutor {
         Gameplay gp = ua.getGameplay();
         if (args[0].equalsIgnoreCase(uaArgs[0])) {
             if(gp.getState() == GameState.WAITING_READY) {
+                gp.getQueue().add(pSender);
                 if(gp.canBegin()) {
-                    gp.tpToSelectArea(pSender);
+                    Set<Player> queue = gp.getQueue();
+                    for(Player qPlayer : queue) {
+                        gp.tpToSelectArea(qPlayer);
+                        gp.addToRoster(qPlayer, "");
+                    }
+                    queue.clear();
                     return true;
                 }
                 pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you will be teleported momentarily.");
@@ -46,15 +52,8 @@ public class Commands implements CommandExecutor {
             else {
                 pSender.sendMessage(ChatColor.RED + ua.getPrefix() + "Unable to add you into the game, as it is currently underway.");
             }
-            if (gp.canBegin()) {
-                Set<Player> queue = gp.getQueue();
-                for(Player qPlayer : queue) {
-                    gp.tpToSelectArea(qPlayer);
-                }
-                queue.clear();
-            }
         } else if (args[0].equalsIgnoreCase(uaArgs[1])) {
-            pSender.teleport(ua.getSelectArea());
+            gp.tpToSelectArea(pSender);
             if(gp.getState() == GameState.IN_GAME) gp.revokeEquipment(pSender);
             gp.removeFromRoster(pSender);
             pSender.sendMessage(ChatColor.DARK_RED + ua.getPrefix() + playerName + ", you have been removed from the game!");
