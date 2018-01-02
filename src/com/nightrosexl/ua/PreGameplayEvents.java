@@ -15,9 +15,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import com.nightrosexl.ua.Gameplay.GameState;
 
@@ -32,7 +30,6 @@ public class PreGameplayEvents implements Listener {
     private Objective obj;
 
     private BukkitTask scoreboardUpdate;
-    private boolean enteredEndZone;
     
     public PreGameplayEvents(UltimateArrow ua) {
         this.ua = ua;
