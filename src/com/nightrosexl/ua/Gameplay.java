@@ -1,85 +1,99 @@
 package com.nightrosexl.ua;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-public class Gameplay implements Listener {
+public class Gameplay {
     public enum GameState {WAITING_READY, IN_GAME, ENDED};
-    
+
     private UltimateArrow ua;
-    private boolean gameStarted, timerStarted, readyPeriod;
+    private Set<Player> queued;
+
+    private List<UAPlayer> ultimateArrowGeneralPlayerRoster;
     private int timeUntilStart, minPlayersToBegin, arrowHitRadius;
     private BukkitTask readyCheckTask;
     private UAPlayer arrowPlayer;
     private GameState state;
 
     private ItemStack arrow = new ItemStack(Material.ARROW, 1);
-    
+    private ItemStack bow = new ItemStack(Material.BOW, 1);
+
     public Gameplay(UltimateArrow ua) {
         this.ua = ua;
-        this.readyPeriod = false;
-        this.timerStarted = false;
-        this.gameStarted = false;
+        
+        ItemMeta bim = bow.getItemMeta();
+        bim.setUnbreakable(true);
+        bow.setItemMeta(bim);
+        
+        queued = new HashSet<Player>();
+        ultimateArrowGeneralPlayerRoster = new ArrayList<UAPlayer>();
         this.timeUntilStart = 60;
         this.arrowHitRadius = 5;
-        this.minPlayersToBegin = 2; /*official version< 5*/
+        this.minPlayersToBegin = 2; /* TODO official version< 5*/
         state = GameState.WAITING_READY;
-    }
-    
-    public ItemStack getArrowItem() {
-        return arrow;
     }
 
     public void distributeEquipment(Player player) {
-        // distribute bow to all players
-        ItemStack bow = new ItemStack(Material.BOW, 1);
+        // distribute bow to player
         player.getInventory().addItem(bow);
         player.updateInventory();
     }
-    
+
     public void revokeEquipment(Player player) {
         player.getInventory().remove(Material.BOW);
+        if(getArrowPlayer().getPlayer().getUniqueId().equals(player.getUniqueId())) player.getInventory().remove(arrow);
         player.updateInventory();
     }
-    
+
     public void broadcastMessage(String message) { // Tells the same message to all players in-game.
-        for(UAPlayer gamePlayer : ua.getUAGeneralPlayerRoster()) {
+        for(UAPlayer gamePlayer : getPlayerRoster()) {
             gamePlayer.getPlayer().sendMessage(message.replace("{PLAYER}", gamePlayer.getPlayer().getName())); // You could add other formatting stuff here later, like time left, kills, etc. Up to you.
         }
     }
-    
-    public void checkReadyPeriod() {
-        if(readyPeriod) return;
-        
-        readyPeriod = true;
+
+    public boolean canBegin() {
+        return getPlayerRoster().size() >= minPlayersToBegin && getPlayerRoster().size() <= 10; // TODO perhaps add a check in addToRoster to check if size is at capacity
+    }
+
+    public boolean shouldEnd() {
+        return getPlayerRoster().size() < minPlayersToBegin; // TODO: Too few players
+    }
+
+    public void startReadyPeriod() {
+        if(state == GameState.WAITING_READY) return;
+        state = GameState.WAITING_READY;
         broadcastMessage(ChatColor.GREEN + ua.getPrefix() + "{PLAYER}, the game will begin in one minute!");
         readyCheckTask = new BukkitRunnable() {
-            int timerVal = timeUntilStart;
+            int countdown = timeUntilStart;
+            int intervalAnnounce = 0;
+            boolean halted = false;
             public void run() {
-                if(ua.getUAGeneralPlayerRoster().size() < minPlayersToBegin) { // Waiting on more players to begin counting down.
-                    timerVal = timeUntilStart;
+                if(getPlayerRoster().size() < minPlayersToBegin) { // Waiting on more players to begin counting down.
+                    countdown = timeUntilStart;
+                    if(intervalAnnounce-- <= 0) {
+                        intervalAnnounce = 20;
+                        broadcastMessage(ChatColor.RED + ua.getPrefix() + "Countdown " + (halted ? "is currently halted" : "has been reset and halted") + " due to insufficient players.");
+                        if(!halted) halted = true;
+                    }
                     return;
                 }
-                if (!timerStarted) timerStarted = true;
-                if (--timerVal > 0 && getReadyAmount() < ua.getUAGeneralPlayerRoster().size()) return; // This will continue going down if the timer is 0 or less, or if the amount of players ready are the same as who's in-game (AKA everyone's ready)
-                if (timerVal <= 0) { // Time's up! We're not waiting on readying players anymore, we're kicking them.
-                    for (int i = 0; i < ua.getUAGeneralPlayerRoster().size(); i++) { // Loop through all players in game
-                        UAPlayer gamePlayer = ua.getUAGeneralPlayerRoster().get(i);
+                if(halted) halted = false;
+                if (--countdown > 0 && getReadyAmount() < getPlayerRoster().size()) return; // This will continue going down if the timer is 0 or less, or if the amount of players ready are the same as who's in-game (AKA everyone's ready)
+                if (getReadyAmount() < getPlayerRoster().size()) { // Time's up! We're not waiting on readying players anymore, we're kicking them.
+                    for (int i = 0; i < getPlayerRoster().size(); i++) { // Loop through all players in game
+                        UAPlayer gamePlayer = getPlayerRoster().get(i);
                         if (!gamePlayer.isReady()) { // This player isn't ready, screw em
-                            ua.removeFromUAGeneralRoster(gamePlayer.getPlayer());
+                            removeFromRoster(gamePlayer.getPlayer());
                             i--; // Since we removed them from the list, all the other entries in the list have shifted left, so we need to shift back one to counteract the i++ that happens after this cycle of the loop completes
                             revokeEquipment(gamePlayer.getPlayer());
                             gamePlayer.getPlayer().teleport(ua.getViewingArea());
@@ -88,45 +102,42 @@ public class Gameplay implements Listener {
                     }
                 }
                 this.cancel();
-                endReadyPeriod();
+                beginGame();
             }
         }.runTaskTimer(ua, 0L, 20L); // run every 1 second
     }
-    
-    public void endReadyPeriod() { // Essentially these chained methods run the game. startReadyPeriod() -> endReadyPeriod() -> selectArrowPlayer()
-        if (gameStarted) return; // Don't want to redo this method if the game's already began
+
+    public void beginGame() { // Essentially, these chained methods run the game. startReadyPeriod() -> endReadyPeriod() -> selectArrowPlayer()
+        if (state == GameState.IN_GAME) return; // Don't want to redo this method if the game's already began
         if (readyCheckTask != null) readyCheckTask.cancel();
         readyCheckTask = null;
+        state = GameState.IN_GAME;
         selectRandArrowPlayer();
-        broadcastMessage(ChatColor.DARK_GREEN + ua.getPrefix() + "GAME BEGIN!");
-        timerStarted = false;
-        readyPeriod = false;
-        gameStarted = true;
+        broadcastMessage(ChatColor.DARK_GREEN + ua.getPrefix() + "GAME HAS BEGUN!");
+        // TODO start timer task here
     }
-    
+
+    public void endGame() { // You choose when to call this I guess
+        if (state == GameState.ENDED) return;
+
+        // remove arrow
+        getArrowPlayer().getPlayer().getInventory().removeItem(arrow);
+        // Do whatever else clean up required, remove items, teleport players to lobby, etc
+
+        state = GameState.ENDED;
+        // TODO potentially schedule a nice delay task teleporting the player to their previous location before entering the game
+        // at end of task, reset data to baseline.
+    }
+
     public void selectRandArrowPlayer() {
         // give one random in-match player in game an arrow
-        int listSize = (int) (Math.random() * ua.getUAGeneralPlayerRoster().size());
-        UAPlayer randomlySelectedGamePlayer = ua.getUAGeneralPlayerRoster().get(listSize);
+        int listSize = (int) (Math.random() * getPlayerRoster().size());
+        UAPlayer randomlySelectedGamePlayer = getPlayerRoster().get(listSize);
 
         // distribute arrow to random player
         setArrowPlayer(randomlySelectedGamePlayer);
     }
-    
-    public void endGame() { // You choose when to call this I guess
-        gameStarted = false;
-        readyPeriod = false;
-        timerStarted = false;
-        
-        // remove arrow
-        getArrowPlayer().getPlayer().getInventory().removeItem(arrow);
-        // Do whatever else clean up required, remove items, teleport players to lobby, etc
-    }
-    
-    public UAPlayer getArrowPlayer() {
-        return arrowPlayer;
-    }
-    
+
     public void setArrowPlayer(UAPlayer newArrowPlayer) {
         if(arrowPlayer != null) {
             arrowPlayer.getPlayer().getInventory().remove(Material.ARROW); // Ensures that our previous holder gets no duplicate arrows
@@ -137,79 +148,97 @@ public class Gameplay implements Listener {
         newArrowPlayer.getPlayer().updateInventory();
         broadcastMessage(ChatColor.LIGHT_PURPLE + ua.getPrefix() + newArrowPlayer.getPlayer().getName() + " has the arrow!"); // This method already paid off
     }
-    public int getReadyAmount() {
-        int readyAmt = 0;
-        for(UAPlayer gamePlayer : ua.getUAGeneralPlayerRoster()) { // Run through all in-game players
-            if (gamePlayer.isReady()) readyAmt++;
+
+    public void tpToSelectArea(Player player) {
+        player.teleport(ua.getSelectArea());
+        player.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + player.getName() + ", you have been teleported to the team selection area!");
+    }
+
+    public void freezePlayer() {
+        // freeze player after walking four blocks
+    }
+
+    // add
+    /** @return true if the player wasn't already in-game, false if they were in-game */
+    public boolean addToRoster(Player player, String team) {
+        if (getPlayer(player) != null) return false; // They're already in the list, don't want a duplicate!
+        queued.remove(player);
+        ultimateArrowGeneralPlayerRoster.add(new UAPlayer(player, team));
+        return true;
+    }
+
+    // remove
+    /** @return true if the player was in-game and got removed, false if they weren't in-game */
+    public boolean removeFromRoster(Player player) {
+        if (getPlayer(player) == null) return false; // Don't want to remove player if they're not in the game!
+        ultimateArrowGeneralPlayerRoster.remove(getPlayer(player));
+        queued.remove(player);
+        player.setScoreboard(player.getServer().getScoreboardManager().getNewScoreboard());  // 'remove' player's scoreboard.
+        return true;
+    }
+
+    public void cleanup(Player leavingPlayer) {
+        if(queued.contains(leavingPlayer)) queued.remove(leavingPlayer);
+        removeFromRoster(leavingPlayer);
+        if(arrowPlayer.getPlayer().getUniqueId().equals(leavingPlayer.getUniqueId())) selectRandArrowPlayer();
+    }
+
+    public UAPlayer getPlayer(Player player) {
+        for (UAPlayer gamePlayer : getPlayerRoster()) {
+            if (gamePlayer.getPlayer().getUniqueId().equals(player.getUniqueId())) return gamePlayer;
         }
-        return readyAmt;
+        return null;
+    }
+    
+    public UAPlayer getArrowPlayer() {
+        return arrowPlayer;
+    }
+
+    public ItemStack getArrowItem() {
+        return arrow;
+    }
+
+    public boolean isTimerRunning() {
+        return readyCheckTask != null; // TODO || gameCountdownTask != null
+    }
+
+    public Set<Player> getQueue() {
+        return queued;
     }
     
     public GameState getState() {
         return state;
     }
-    
-    public void freezePlayer() {
-        // freeze player after walking four blocks
+
+    public int getArrowRadius() {
+        return arrowHitRadius;
     }
     
-    @EventHandler
-    public void arrowBehavior(EntityDamageByEntityEvent e) {
-        if (e.getDamager().getType() != EntityType.ARROW) return; // Make sure to import EntityType, not a damaging arrow
-        if (e.getEntity().getType() != EntityType.PLAYER) return; // Not a damaged player
-        Player damaged = (Player) e.getEntity();
-        if (ua.getPlayer(damaged) == null) return; // Not in general roster of players, so not in game.
-        Arrow a = (Arrow) e.getDamager();
-        a.setKnockbackStrength(0);
-        e.setDamage(0.0);
-        a.remove();
-        e.setCancelled(true);
-        
-        damaged.damage(1.0); // if we call this with 0, it doesn't do anything, so we call it with 1, and then heal the player of the damage.
-        damaged.setHealth(damaged.getHealth()+1);
-        
-        // get player hit with arrow, give them arrow.
-        setArrowPlayer(ua.getPlayer(damaged));
-        
+    public int getReadyAmount() {
+        int readyAmt = 0;
+        for(UAPlayer gamePlayer : getPlayerRoster()) { // Run through all in-game players
+            if (gamePlayer.isReady()) readyAmt++;
+        }
+        return readyAmt;
     }
 
-    @EventHandler
-    public void onArrowHitBlock(ProjectileHitEvent e) {
-        if (e.getHitEntity() != null) return; // We only want to handle this event if it strikes a block, not a player or something.
-        if (!(e.getEntity() instanceof Arrow) || !(((Arrow)e.getEntity()).getShooter() instanceof Player)) return;
-        Player shooter = (Player) ((Arrow)e.getEntity()).getShooter();
-        Location hit = e.getHitBlock().getLocation();
-        double nearestDistanceSquared = Double.MAX_VALUE;
-        UAPlayer nearestPlayerToArrow = null;
-        for(Entity ent : e.getEntity().getNearbyEntities(arrowHitRadius, arrowHitRadius, arrowHitRadius)) {
-            if (!(ent instanceof Player)) continue;
-            if (ent.getUniqueId().equals((shooter.getUniqueId()))) continue; // Don't want to do this, just take care of it below
-            double distSquared = hit.distanceSquared(ent.getLocation());
-            if (distSquared < nearestDistanceSquared) { // We've found an entity that's nearer than our previous one
-                Player p = (Player) ent;
-                nearestDistanceSquared = distSquared;
-                nearestPlayerToArrow = ua.getPlayer(p);
-            }
-        }
-        
-        if (nearestPlayerToArrow == null || nearestDistanceSquared == Double.MAX_VALUE) { // No player found/nearest distance still farthest possible
-            getArrowPlayer().getPlayer().getInventory().addItem(getArrowItem()); // give them another arrow since no player can take possession
-            e.getEntity().remove(); // Remove the old arrow
-            return;
-        }
-        // Player must have been found if we're here
-        setArrowPlayer(nearestPlayerToArrow);
-        e.getEntity().remove();
+    public List<UAPlayer> getPlayerRoster() {
+        return ultimateArrowGeneralPlayerRoster;
     }
-    
-    @EventHandler
-    public void onBuggedArrow(PlayerInteractEvent event) {
-        Player clicker = event.getPlayer();
-        if(event.getItem() == null) return; // Nothing in hand
-        if(ua.getPlayer(clicker) == null) return; // Not in-game
-        if(event.getItem().getType() != Material.BOW) return; // Item clicked was not a bow
-        if(!clicker.getInventory().contains(arrow)) return; // They don't have an arrow in inv
-        if(clicker.getUniqueId().equals(arrowPlayer.getPlayer().getUniqueId())) return; // Shooting player isn't the arrow player
-        clicker.getInventory().remove(arrow); // Remove arrow if they're in-game, have a bow in hand, and have an arrow
+
+    public List<UAPlayer> getRedTeamPlayers() {
+        List<UAPlayer> redTeam = new ArrayList<UAPlayer>();
+        for (UAPlayer gamePlayer : getPlayerRoster()) {
+            if (gamePlayer.getTeam().equalsIgnoreCase("Red")) redTeam.add(gamePlayer);
+        }
+        return redTeam;
+    }
+
+    public List<UAPlayer> getBlueTeamPlayers() {
+        List<UAPlayer> blueTeam = new ArrayList<UAPlayer>();
+        for (UAPlayer gamePlayer : getPlayerRoster()) {
+            if (gamePlayer.getTeam().equalsIgnoreCase("Blue")) blueTeam.add(gamePlayer);
+        }
+        return blueTeam;
     }
 }
