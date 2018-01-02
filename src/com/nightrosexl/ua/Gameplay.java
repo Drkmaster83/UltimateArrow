@@ -162,7 +162,6 @@ public class Gameplay {
     /** @return true if the player wasn't already in-game, false if they were in-game */
     public boolean addToRoster(Player player, String team) {
         if (getPlayer(player) != null) return false; // They're already in the list, don't want a duplicate!
-        queued.remove(player);
         ultimateArrowGeneralPlayerRoster.add(new UAPlayer(player, team));
         return true;
     }
