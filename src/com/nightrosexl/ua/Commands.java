@@ -65,9 +65,3 @@ public class Commands implements CommandExecutor {
         return true;
     }
 }
-
-/*
-TODO:
- if /ua leave and you aren't in game, send message
- if players leave the server, remove from game.
- */

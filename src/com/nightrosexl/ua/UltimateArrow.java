@@ -10,7 +10,7 @@ public class UltimateArrow extends JavaPlugin {
 	  private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
 	  private World w;
 	  private Gameplay gp;
-	  private TTHandler tt;
+	  private PreGameplayEvents tt;
 	  private static UltimateArrow instance;
 	  
 	  @Override
@@ -25,7 +25,7 @@ public class UltimateArrow extends JavaPlugin {
 	    viewing_deck1 = new Location(w, 316, 72, -342);
 	    gp = new Gameplay(this);
 	    this.getCommand("ultimatearrow").setExecutor(new Commands(this));
-	    getServer().getPluginManager().registerEvents(tt = new TTHandler(this), this);
+	    getServer().getPluginManager().registerEvents(tt = new PreGameplayEvents(this), this);
 	    getServer().getPluginManager().registerEvents(new GameplayEvents(this, gp), this);
 	  }
 
