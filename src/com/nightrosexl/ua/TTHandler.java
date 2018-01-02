@@ -30,6 +30,18 @@ public class TTHandler implements Listener {
     private Objective obj;
 
     private BukkitTask scoreboardUpdate;
+    private boolean enteredEndZone;
+    
+    int seconds;
+    int score = 0;
+    int arrows;
+    
+    Scoreboard sboard; // This is the universal scoreboard, we don't want to let this go.
+    Objective obj;
+    Score scoreDisplay;
+    Team time; // If you have a K/D ratio, that has to be a player-specific scoreboard.
+    Location loc;
+    BukkitTask scoreboardUpdate;
 
     public TTHandler(UltimateArrow ua) {
         this.ua = ua;
@@ -107,6 +119,7 @@ public class TTHandler implements Listener {
     public void removeUponDisconnection(PlayerQuitEvent e) {
         Player leavingPlayer = e.getPlayer();
         ua.getGameplay().cleanup(leavingPlayer);
+        ua.removeFromUAGeneralRoster(leavingPlayer);
     }
 
     /** Updates scoreboard data for all gameplayers */
@@ -134,6 +147,23 @@ public class TTHandler implements Listener {
             moving.sendMessage("TEST: In the blue zone, red team is given one point!");
             // update scoreboard, increment score.
         }
+      
+    	Player movingPlayer = e.getPlayer();
+    	UAPlayer gamePlayer = ua.getPlayer(movingPlayer);
+    	Block b = movingPlayer.getLocation().getBlock().getRelative(BlockFace.DOWN, 2);
+    	
+    	if (b.getType() == Material.REDSTONE_BLOCK && ua.getBlueTeamPlayers().contains(gamePlayer) && enteredEndZone != true) {
+    		enteredEndZone = true;
+    		movingPlayer.sendMessage("TEST: In the red zone, blue team is given one point!");
+    		// update scoreboard, increment score.
+    	}
+    	
+    	if (b.getType() == Material.LAPIS_BLOCK && ua.getRedTeamPlayers().contains(gamePlayer) && enteredEndZone != true) {
+    		enteredEndZone = true;
+    		movingPlayer.sendMessage("TEST: In the blue zone, red team is given one point!");
+    		// update scoreboard, increment score.
+    	}
+      
     }
 
     /*
