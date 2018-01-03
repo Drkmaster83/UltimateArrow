@@ -39,7 +39,7 @@ public class Gameplay {
         ultimateArrowGeneralPlayerRoster = new ArrayList<UAPlayer>();
         this.timeUntilStart = 60;
         this.arrowHitRadius = 5;
-        this.minPlayersToBegin = 2; /* TODO official version< 5*/
+        this.minPlayersToBegin = 1; /* TODO official version< 5*/
         state = GameState.WAITING_READY;
     }
 
@@ -148,14 +148,18 @@ public class Gameplay {
         newArrowPlayer.getPlayer().updateInventory();
         broadcastMessage(ChatColor.LIGHT_PURPLE + ua.getPrefix() + newArrowPlayer.getPlayer().getName() + " has the arrow!"); // This method already paid off
     }
-
+    
     public void tpToSelectArea(Player player) {
+        tpToSelectArea(player, true);
+    }
+
+    public void tpToSelectArea(Player player, boolean sendMessage) {
         player.teleport(ua.getSelectArea());
-        player.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + player.getName() + ", you have been teleported to the team selection area!");
+        if (sendMessage) player.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + player.getName() + ", you have been teleported to the team selection area!");
     }
 
     public void freezePlayer() {
-        // freeze player after walking four blocks
+        // freeze player after walking four blocks with arrow in inventory.
     }
 
     // add

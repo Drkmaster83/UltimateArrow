@@ -10,7 +10,7 @@ public class UltimateArrow extends JavaPlugin {
 	  private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
 	  private World w;
 	  private Gameplay gp;
-	  private PreGameplayEvents tt;
+	  private PreGameplayEvents pge;
 	  private static UltimateArrow instance;
 	  
 	  @Override
@@ -25,13 +25,13 @@ public class UltimateArrow extends JavaPlugin {
 	    viewing_deck1 = new Location(w, 316, 72, -342);
 	    gp = new Gameplay(this);
 	    this.getCommand("ultimatearrow").setExecutor(new Commands(this));
-	    getServer().getPluginManager().registerEvents(tt = new PreGameplayEvents(this), this);
+	    getServer().getPluginManager().registerEvents(pge = new PreGameplayEvents(this), this);
 	    getServer().getPluginManager().registerEvents(new GameplayEvents(this, gp), this);
 	  }
 
 	  @Override
 	  public void onDisable() {
-	    tt.cleanup();
+	    pge.cleanup();
 	  }
 	  
 	  public static UltimateArrow getInstance() {
@@ -96,5 +96,4 @@ public class UltimateArrow extends JavaPlugin {
  * TODO:
  * - Test out teleport stuff. -DONE-
  * - Add in team-balancing later on. -Work in Progress-
- * -
  */

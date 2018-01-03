@@ -118,6 +118,7 @@ public class PreGameplayEvents implements Listener {
         }
     }
 
+    // Move this to appropriate class?
     @EventHandler
     public void playerMovementDetection(PlayerMoveEvent e) {
         if(e.getTo().getBlock().equals(e.getFrom().getBlock())) return;
@@ -127,10 +128,14 @@ public class PreGameplayEvents implements Listener {
         Block b = moving.getLocation().getBlock().getRelative(BlockFace.DOWN, 2);
 
         if (b.getType() == Material.REDSTONE_BLOCK && gamePlayer.getTeam().equalsIgnoreCase("Blue")) {
+        	score++;
+        	updateScoreboard();
             moving.sendMessage("TEST: In the red zone, blue team is given one point!");
             // update scoreboard, increment score.
         }
         else if (b.getType() == Material.LAPIS_BLOCK && gamePlayer.getTeam().equalsIgnoreCase("Red")) {
+        	score++;
+        	updateScoreboard();
             moving.sendMessage("TEST: In the blue zone, red team is given one point!");
             // update scoreboard, increment score.
         }
