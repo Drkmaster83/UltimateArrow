@@ -30,11 +30,11 @@ public class Gameplay {
 
     public Gameplay(UltimateArrow ua) {
         this.ua = ua;
-        
+
         ItemMeta bim = bow.getItemMeta();
         bim.setUnbreakable(true);
         bow.setItemMeta(bim);
-        
+
         queued = new HashSet<Player>();
         ultimateArrowGeneralPlayerRoster = new ArrayList<UAPlayer>();
         this.timeUntilStart = 60;
@@ -148,7 +148,7 @@ public class Gameplay {
         newArrowPlayer.getPlayer().updateInventory();
         broadcastMessage(ChatColor.LIGHT_PURPLE + ua.getPrefix() + newArrowPlayer.getPlayer().getName() + " has the arrow!"); // This method already paid off
     }
-    
+
     public void tpToSelectArea(Player player) {
         tpToSelectArea(player, true);
     }
@@ -166,6 +166,7 @@ public class Gameplay {
     /** @return true if the player wasn't already in-game, false if they were in-game */
     public boolean addToRoster(Player player, String team) {
         if (getPlayer(player) != null) return false; // They're already in the list, don't want a duplicate!
+        queued.remove(player);
         ultimateArrowGeneralPlayerRoster.add(new UAPlayer(player, team));
         return true;
     }
@@ -192,7 +193,7 @@ public class Gameplay {
         }
         return null;
     }
-    
+
     public UAPlayer getArrowPlayer() {
         return arrowPlayer;
     }
@@ -208,7 +209,7 @@ public class Gameplay {
     public Set<Player> getQueue() {
         return queued;
     }
-    
+
     public GameState getState() {
         return state;
     }
@@ -216,7 +217,7 @@ public class Gameplay {
     public int getArrowRadius() {
         return arrowHitRadius;
     }
-    
+
     public int getReadyAmount() {
         int readyAmt = 0;
         for(UAPlayer gamePlayer : getPlayerRoster()) { // Run through all in-game players

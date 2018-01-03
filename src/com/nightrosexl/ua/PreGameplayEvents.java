@@ -30,7 +30,7 @@ public class PreGameplayEvents implements Listener {
     private Objective obj;
 
     private BukkitTask scoreboardUpdate;
-    
+
     public PreGameplayEvents(UltimateArrow ua) {
         this.ua = ua;
 
@@ -44,7 +44,7 @@ public class PreGameplayEvents implements Listener {
             }
         }.runTaskTimer(ua, 0L, 10L);
     }
-    
+
     // ready up method
     @EventHandler
     public void readyUp(PlayerInteractEvent e) {
@@ -76,23 +76,24 @@ public class PreGameplayEvents implements Listener {
             clickingPlayer.sendMessage(ChatColor.RED + ua.getPrefix() + "Game already underway!");
             return; //Don't listen to this if the game is in progress
         }
-        if (e.getClickedBlock() == null) return;
-        if (e.getClickedBlock().getType() != Material.STONE_PLATE) return;
+        Block clicked = e.getClickedBlock();
+        if (clicked == null) return;
+        if (clicked.getType() != Material.STONE_PLATE) return;
         if (ua.getPlayer(clickingPlayer) != null) { // If they stepped on a stone pressure plate and we've added them to our roster
             UAPlayer gamePlayer = ua.getPlayer(clickingPlayer);
             ua.getGameplay().startReadyPeriod();
-            if (e.getClickedBlock().getLocation().equals(ua.getRedPlate())) {
+            if (clicked.getLocation().equals(ua.getRedPlate())) {
                 gamePlayer.setTeam("Red"); //Set their team!
                 clickingPlayer.teleport(ua.getRedSide());
                 clickingPlayer.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + clickingPlayer.getName() + ", you have joined the Red Team!");
             }
-            else if (e.getClickedBlock().getLocation().equals(ua.getBluePlate())) {
+            else if (clicked.getLocation().equals(ua.getBluePlate())) {
                 gamePlayer.setTeam("Blue"); // Remember, we could also teleport the player to a location if we had a UAPlayer#joinGame() method
                 clickingPlayer.teleport(ua.getBlueSide());
                 clickingPlayer.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + clickingPlayer.getName() + ", you have joined the Blue Team!");
             }
             // not in list and trigger plate? send message.
-        } else if (ua.getPlayer(clickingPlayer) == null && (e.getClickedBlock().getLocation().equals(ua.getRedPlate()) || e.getClickedBlock().getLocation().equals(ua.getBluePlate()))) {
+        } else if (ua.getPlayer(clickingPlayer) == null && (clicked.getLocation().equals(ua.getRedPlate()) || clicked.getLocation().equals(ua.getBluePlate()))) {
             if(ua.getGameplay().getQueue().contains(clickingPlayer)) {
                 clickingPlayer.sendMessage(ChatColor.RED + ua.getPrefix() + "Team selection will be unlocked once the other players have been teleported to the select area.");
                 return;
@@ -128,14 +129,14 @@ public class PreGameplayEvents implements Listener {
         Block b = moving.getLocation().getBlock().getRelative(BlockFace.DOWN, 2);
 
         if (b.getType() == Material.REDSTONE_BLOCK && gamePlayer.getTeam().equalsIgnoreCase("Blue")) {
-        	score++;
-        	updateScoreboard();
+            score++;
+            updateScoreboard();
             moving.sendMessage("TEST: In the red zone, blue team is given one point!");
             // update scoreboard, increment score.
         }
         else if (b.getType() == Material.LAPIS_BLOCK && gamePlayer.getTeam().equalsIgnoreCase("Red")) {
-        	score++;
-        	updateScoreboard();
+            score++;
+            updateScoreboard();
             moving.sendMessage("TEST: In the blue zone, red team is given one point!");
             // update scoreboard, increment score.
         }
