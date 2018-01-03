@@ -6,74 +6,74 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class UltimateArrow extends JavaPlugin {
-	  private final String uaPrefix = "[Ultimate Arrow] ";
-	  private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
-	  private World w;
-	  private Gameplay gp;
-	  private PreGameplayEvents pge;
-	  private static UltimateArrow instance;
-	  
-	  @Override
-	  public void onEnable() {
-		instance = this;
-	    w = getServer().getWorld("world"); // Centralize the world object for all the locations
-	    redTeamPlateLoc = new Location(w, 408, 64, 636);
-	    redTeamSide = new Location(w, 317.5, 64, -350.5, 180f, 0f);
-	    blueTeamPlateLoc = new Location(w, 404, 64, 632);
-	    blueTeamSide = new Location(w, 317.5, 65, -442.5, 0f, 0f);
-	    uaTeamSelectArea = new Location(w, 406.5, 64, 634.5); // Teleport location is now in the middle of that block
-	    viewing_deck1 = new Location(w, 316, 72, -342);
-	    gp = new Gameplay(this);
-	    this.getCommand("ultimatearrow").setExecutor(new Commands(this));
-	    getServer().getPluginManager().registerEvents(pge = new PreGameplayEvents(this), this);
-	    getServer().getPluginManager().registerEvents(new GameplayEvents(this, gp), this);
-	  }
+    private final String uaPrefix = "[Ultimate Arrow] ";
+    private Location redTeamPlateLoc, redTeamSide, blueTeamPlateLoc, blueTeamSide, uaTeamSelectArea, viewing_deck1;
+    private World w;
+    private Gameplay gp;
+    private PreGameplayEvents pge;
+    private static UltimateArrow instance;
 
-	  @Override
-	  public void onDisable() {
-	    pge.cleanup();
-	  }
-	  
-	  public static UltimateArrow getInstance() {
-		  return instance;
-	  }
+    @Override
+    public void onEnable() {
+        instance = this;
+        w = getServer().getWorld("world"); // Centralize the world object for all the locations
+        redTeamPlateLoc = new Location(w, 408, 64, 636);
+        redTeamSide = new Location(w, 317.5, 64, -350.5, 180f, 0f);
+        blueTeamPlateLoc = new Location(w, 404, 64, 632);
+        blueTeamSide = new Location(w, 317.5, 65, -442.5, 0f, 0f);
+        uaTeamSelectArea = new Location(w, 406.5, 64, 634.5); // Teleport location is now in the middle of that block
+        viewing_deck1 = new Location(w, 316, 72, -342);
+        gp = new Gameplay(this);
+        this.getCommand("ultimatearrow").setExecutor(new Commands(this));
+        getServer().getPluginManager().registerEvents(pge = new PreGameplayEvents(this), this);
+        getServer().getPluginManager().registerEvents(new GameplayEvents(this, gp), this);
+    }
 
-	  public Location getRedSide() {
-	    return redTeamSide;
-	  }
+    @Override
+    public void onDisable() {
+        pge.cleanup();
+    }
 
-	  public Location getBlueSide() {
-	    return blueTeamSide;
-	  }
+    public static UltimateArrow getInstance() {
+        return instance;
+    }
 
-	  public Location getRedPlate() {
-	    return redTeamPlateLoc;
-	  }
+    public Location getRedSide() {
+        return redTeamSide;
+    }
 
-	  public Location getBluePlate() {
-	    return blueTeamPlateLoc;
-	  }
+    public Location getBlueSide() {
+        return blueTeamSide;
+    }
 
-	  public Location getViewingArea() {
-	    return viewing_deck1;
-	  }
+    public Location getRedPlate() {
+        return redTeamPlateLoc;
+    }
 
-	  public Location getSelectArea() {
-	    return uaTeamSelectArea;
-	  }
+    public Location getBluePlate() {
+        return blueTeamPlateLoc;
+    }
 
-	  public String getPrefix() {
-	    return uaPrefix;
-	  }
+    public Location getViewingArea() {
+        return viewing_deck1;
+    }
 
-	  public Gameplay getGameplay() {
-	    return gp;
-	  }
+    public Location getSelectArea() {
+        return uaTeamSelectArea;
+    }
 
-	  public UAPlayer getPlayer(Player player) {
-	    return gp.getPlayer(player);
-	  }
-	}
+    public String getPrefix() {
+        return uaPrefix;
+    }
+
+    public Gameplay getGameplay() {
+        return gp;
+    }
+
+    public UAPlayer getPlayer(Player player) {
+        return gp.getPlayer(player);
+    }
+}
 
 /*
  * Ultimate Arrow a mini-game conceived by NightRoseXL.

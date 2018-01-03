@@ -15,12 +15,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public class GameplayEvents implements Listener {
     private UltimateArrow ua;
     private Gameplay gp;
-    
+
     public GameplayEvents(UltimateArrow ua, Gameplay gp) {
         this.ua = ua;
         this.gp = gp;
     }
-    
+
     @EventHandler
     public void arrowBehavior(EntityDamageByEntityEvent e) {
         if (e.getDamager().getType() != EntityType.ARROW) return; // Make sure to import EntityType, not a damaging arrow

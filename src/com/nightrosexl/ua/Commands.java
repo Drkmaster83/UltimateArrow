@@ -1,7 +1,5 @@
 package com.nightrosexl.ua;
 
-import java.util.Set;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -39,18 +37,16 @@ public class Commands implements CommandExecutor {
             if(gp.getState() == GameState.WAITING_READY) {
                 gp.getQueue().add(pSender);
                 if(gp.canBegin()) {
-                    Set<Player> queue = gp.getQueue();
-                    for(Player qPlayer : queue) {
+                    for(Player qPlayer : gp.getQueue().toArray(new Player[gp.getQueue().size()])) {
                         gp.tpToSelectArea(qPlayer);
                         gp.addToRoster(qPlayer, "");
                     }
-                    queue.clear();
                     return true;
                 }
                 pSender.sendMessage(ChatColor.DARK_GREEN + ua.getPrefix() + playerName + ", you will be teleported momentarily.");
             }
             else {
-                pSender.sendMessage(ChatColor.RED + ua.getPrefix() + "Unable to add you into the game, as it is currently underway.");
+                pSender.sendMessage(ChatColor.RED + ua.getPrefix() + "Unable to add you into the queue, as the game is currently underway.");
             }
         } else if (args[0].equalsIgnoreCase(uaArgs[1])) {
             gp.tpToSelectArea(pSender, false);
